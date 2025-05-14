@@ -113,7 +113,7 @@ function conky_draw_text()
     local cr = cairo_create(cs)
 
     -- Prepare header text
-    local header_text = "Wereldtijden" -- Header text (in Dutch)
+    local header_text = "World Clocks" -- Header text (in Dutch)
     cairo_select_font_face(cr, settings.font, CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL)
     cairo_set_font_size(cr, settings.header_size)
     local ext = cairo_text_extents_t:create()
