@@ -1,34 +1,42 @@
 -- text.lua
 -- World Clocks drawn with Cairo and flags
 -- by @wim66
--- v 0.5 May 14, 2025
+-- v 0.6 May 15, 2025
 
 require 'cairo'
 require 'images'
 
--- Define a table containing information about different world clocks
+-- Define a table containing information about different world clocks.
 -- Each clock includes:
---   - label: The name of the city
---   - zone: The time zone of the city
---   - color: The color of the clock text in hexadecimal format
---   - alpha: The transparency level (1.0 = fully opaque)
---   - flag: The path to the flag image associated with the city
+--   - label: The name of the city.
+--   - zone: The time zone of the city.
+--   - color: The color of the clock text in hexadecimal format.
+--   - alpha: The transparency level (1.0 = fully opaque).
+--   - flag: The path to the flag image associated with the city.
 local world_clocks = {
-    { label = "Amsterdam",    zone = "Europe/Amsterdam",    color = "#00D1FF", alpha = 1.0, flag = "images/NL.png" },
-    { label = "Londen",       zone = "Europe/London",       color = "#FFD300", alpha = 1.0, flag = "images/GB.png" },
-    { label = "New York",     zone = "America/New_York",    color = "#FF4B00", alpha = 1.0, flag = "images/US.png" },
-    { label = "Washington",   zone = "America/New_York",    color = "#00FF94", alpha = 1.0, flag = "images/US.png" },
-    { label = "Tokyo",        zone = "Asia/Tokyo",          color = "#FF006E", alpha = 1.0, flag = "images/JP.png" },
-    { label = "Beijing",      zone = "Asia/Shanghai",       color = "#7CFC00", alpha = 1.0, flag = "images/CH.png" },
-    { label = "Moskou",       zone = "Europe/Moscow",       color = "#FF00FF", alpha = 1.0, flag = "images/RU.png" },
-    { label = "Canberra",     zone = "Australia/Canberra",  color = "#00BFFF", alpha = 1.0, flag = "images/AU.png" },
-    { label = "Brasilia",     zone = "America/Sao_Paulo",   color = "#FFA500", alpha = 1.0, flag = "images/BR.png" },
-    { label = "Las Vegas",    zone = "America/Los_Angeles", color = "#FF1493", alpha = 1.0, flag = "images/US.png" },
-    { label = "Paris",        zone = "Europe/Paris",        color = "#00FFEF", alpha = 1.0, flag = "images/FR.png" }
+    -- Top label has priority, doesn't scroll
+    { label = "Amsterdam",    zone = "Europe/Amsterdam",                color = "#00D1FF", alpha = 1.0, flag = "images/NL.png" },
+    { label = "Paris",        zone = "Europe/Paris",                    color = "#00FFEF", alpha = 1.0, flag = "images/FR.png" },
+    { label = "London",       zone = "Europe/London",                   color = "#FFD300", alpha = 1.0, flag = "images/GB.png" },
+    { label = "New York",     zone = "America/New_York",                color = "#FF4B00", alpha = 1.0, flag = "images/US.png" },
+    { label = "Washington",   zone = "America/New_York",                color = "#00FF94", alpha = 1.0, flag = "images/US.png" },
+    { label = "Las Vegas",    zone = "America/Los_Angeles",             color = "#FF1493", alpha = 1.0, flag = "images/US.png" },
+    { label = "Suva",         zone = "Pacific/Fiji",                    color = "#a47de8", alpha = 1.0, flag = "images/FJ.png" },
+    { label = "Wellington",   zone = "Pacific/Auckland",                color = "#4d94ff", alpha = 1.0, flag = "images/NZ.png" },
+    { label = "Canberra",     zone = "Australia/Canberra",              color = "#00BFFF", alpha = 1.0, flag = "images/AU.png" },
+    { label = "Tokyo",        zone = "Asia/Tokyo",                      color = "#FF006E", alpha = 1.0, flag = "images/JP.png" },
+    { label = "Beijing",      zone = "Asia/Shanghai",                   color = "#7CFC00", alpha = 1.0, flag = "images/CN.png" },
+    { label = "Jakarta",      zone = "Asia/Jakarta",                    color = "#CC0000", alpha = 1.0, flag = "images/ID.png" },
+    { label = "Cape Town",    zone = "Africa/Johannesburg",             color = "#009900", alpha = 1.0, flag = "images/ZA.png" },
+    { label = "Brasilia",     zone = "America/Sao_Paulo",               color = "#ff5782", alpha = 1.0, flag = "images/BR.png" },
+    { label = "Buenos Aires", zone = "America/Argentina/Buenos_Aires",  color = "#FFAA00", alpha = 1.0, flag = "images/AR.png" },
 }
 
 -- Define settings for rendering text, headers, and labels
 local settings = {
+
+    scroll_speed = 4,                      -- Scroll speed in seconds
+
     font = "Ubuntu Mono",                  -- Font to use for text
     size = 14,                             -- Font size for the clock text
     header_size = 18,                      -- Font size for the header text
@@ -46,7 +54,7 @@ local settings = {
     },
     x = 46,                                -- X-coordinate for the clocks text
     y = 40,                                -- Y-coordinate for the first clock text
-    line_height = 23,                      -- Line height between successive clocks
+    line_height = 25,                      -- Line height between successive clocks
     flag_height = 16,                      -- Height of the flag images
     flag_x_offset = -30,                   -- Horizontal offset for flag images
     flag_y_offset = 12,                    -- Vertical offset for flag images
@@ -113,7 +121,7 @@ function conky_draw_text()
     local cr = cairo_create(cs)
 
     -- Prepare header text
-    local header_text = "World Clocks" -- Header text (in Dutch)
+    local header_text = "World Clocks" -- Header text (in English)
     cairo_select_font_face(cr, settings.font, CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL)
     cairo_set_font_size(cr, settings.header_size)
     local ext = cairo_text_extents_t:create()
@@ -150,12 +158,54 @@ function conky_draw_text()
 
     -- Draw each clock entry
     cairo_set_font_size(cr, settings.size)
-    for i, city in ipairs(world_clocks) do
-        local time = get_time(city.zone) -- Get the time for the current city
-        local y = settings.y + i * settings.line_height -- Calculate vertical position
-        local label_text = string.format("%-12s %s", city.label .. ":", time) -- Format label text
 
-        -- Calculate label background dimensions
+    -- Scroll settings
+    local visible_lines = 9  -- Number of cities displayed alongside the priority clock
+    local total_lines = #world_clocks - 1  -- Subtract 1 as Amsterdam is fixed
+    local sec = tonumber(os.date("%S"))  -- Current seconds
+    local offset = (total_lines - (math.floor(sec / settings.scroll_speed) % total_lines)) % total_lines
+
+    -- Draw priority label (always at the top)
+    local priority_city = world_clocks[1]
+    local time = get_time(priority_city.zone)
+    local y = settings.y + settings.line_height
+    local label_text = string.format("%-14s %s", priority_city.label .. ":", time)
+
+    local extents = cairo_text_extents_t:create()
+    cairo_text_extents(cr, label_text, extents)
+    local text_width = extents.width
+    local bg_x = settings.x + settings.flag_x_offset - settings.label_padding_x
+    local bg_y = y - settings.flag_y_offset - settings.label_padding_y
+    local bg_w = settings.flag_height + (-settings.flag_x_offset) + text_width - 15 + settings.label_padding_x * 2
+    local bg_h = settings.flag_height + settings.label_padding_y * 2
+
+    -- Label background
+    set_rgba(cr, settings.label_bg_color, settings.label_bg_alpha)
+    draw_rounded_rect(cr, bg_x, bg_y, bg_w, bg_h, settings.label_corner_radius)
+    cairo_fill_preserve(cr)
+
+    -- Border
+    set_rgba(cr, settings.label_border_color, 1.0)
+    cairo_set_line_width(cr, settings.label_border_width)
+    cairo_stroke(cr)
+
+    -- Flag
+    local flag_x = settings.x + settings.flag_x_offset
+    draw_image(cr, priority_city.flag, flag_x, y - settings.flag_y_offset, settings.flag_height)
+
+    -- Text
+    set_rgba(cr, priority_city.color, priority_city.alpha)
+    cairo_move_to(cr, settings.x, y)
+    cairo_show_text(cr, label_text)
+
+    -- Draw the remaining cities with scrolling, starting from index 2
+    for i = 1, visible_lines do
+        local index = (offset + i - 1) % total_lines + 2  -- +2 to start from the second item
+        local city = world_clocks[index]
+        local time = get_time(city.zone)
+        local y = settings.y + (i + 1) * settings.line_height  -- +1 to start below Amsterdam
+        local label_text = string.format("%-14s %s", city.label .. ":", time)
+
         local extents = cairo_text_extents_t:create()
         cairo_text_extents(cr, label_text, extents)
         local text_width = extents.width
@@ -164,21 +214,21 @@ function conky_draw_text()
         local bg_w = settings.flag_height + (-settings.flag_x_offset) + text_width - 15 + settings.label_padding_x * 2
         local bg_h = settings.flag_height + settings.label_padding_y * 2
 
-        -- Draw label background
+        -- Label background
         set_rgba(cr, settings.label_bg_color, settings.label_bg_alpha)
         draw_rounded_rect(cr, bg_x, bg_y, bg_w, bg_h, settings.label_corner_radius)
         cairo_fill_preserve(cr)
 
-        -- Draw label border
+        -- Border
         set_rgba(cr, settings.label_border_color, 1.0)
         cairo_set_line_width(cr, settings.label_border_width)
         cairo_stroke(cr)
 
-        -- Draw flag image
+        -- Flag
         local flag_x = settings.x + settings.flag_x_offset
         draw_image(cr, city.flag, flag_x, y - settings.flag_y_offset, settings.flag_height)
 
-        -- Draw clock text
+        -- Text
         set_rgba(cr, city.color, city.alpha)
         cairo_move_to(cr, settings.x, y)
         cairo_show_text(cr, label_text)

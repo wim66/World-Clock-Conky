@@ -1,7 +1,7 @@
 -- globe.lua
 -- World Clocks drawn with Cairo and flags
 -- by @wim66
--- v 0.5 May 14, 2025
+-- v 0.6 May 15, 2025
 
 -- Load Cairo libraries for drawing functionality
 local cairo = require('cairo')
@@ -14,13 +14,13 @@ local flags = require("images")
 
 -- Configuration settings for the globe and its elements
 local config = {
-    rotation_speed = 35,               -- Time in seconds for a full globe rotation
+    rotation_speed = 35,              -- Speed for a full globe rotation
     pin_length = 20,                  -- Default length of the pin line from the globe to the label
     pin_radius = 5,                   -- Radius of the city pinhead (circle)
     font_name = "Ubuntu Mono",        -- Font used for city labels
     font_size = 12,                   -- Font size for labels
     label_color_hex = "#000000",      -- Default text color for labels (black)
-    label_offset = 12,                -- Distance in pixels between the pin-head and label
+    label_offset = 14,                -- Distance in pixels between the pin-head and label
     xc = 340,                         -- X-coordinate for the center of the globe
     yc = 160,                         -- Y-coordinate for the center of the globe
     radius = 90,                      -- Radius of the globe
@@ -37,12 +37,17 @@ local flags = {
     ["Tokyo"] = "JP.png",
     ["London"] = "GB.png",
     ["Moscow"] = "RU.png",
-    ["Beijing"] = "CH.png",
+    ["Beijing"] = "CN.png",
     ["Brasilia"] = "BR.png",
     ["Canberra"] = "AU.png",
     ["Paris"] = "FR.png",
     ["Washington D.C."] = "US.png",
-    ["Las Vegas"] = "US.png"
+    ["Las Vegas"] = "US.png",
+    ["Buenos Aires"] = "AR.png",
+    ["Cape Town"] = "ZA.png",
+    ["Wellington"] = "NZ.png",
+    ["Jakarta"] = "ID.png",
+    ["Suva"] = "FJ.png",
 }
 
 -- Function to project 3D globe coordinates to 2D screen coordinates
@@ -81,7 +86,7 @@ end
 -- Function to draw the globe
 local function draw_globe(cr)
     -- Draw a shadow behind the globe
-    cairo_set_source_rgba(cr, 0, 0, 0, 0.5) -- Shadow color with transparency
+    cairo_set_source_rgba(cr, 0, 0, 0, 0.2) -- Shadow color with transparency
     cairo_arc(cr, config.xc + 3, config.yc + 3, config.radius, 0, 2 * math.pi)
     cairo_fill(cr)
 
@@ -89,18 +94,8 @@ local function draw_globe(cr)
     local now = os.clock() -- Get the current time in seconds
     local rotation = (now % config.rotation_speed) / config.rotation_speed * 2 * math.pi
 
-    -- Draw the globe with a fallback color
-    cairo_set_source_rgba(cr, 0, 0.5, 1, 0.4) -- Fallback color (light blue)
-    cairo_arc(cr, config.xc, config.yc, config.radius, 0, 2 * math.pi)
-    cairo_fill(cr)
-
-    -- Add a light overlay for visual effect
-    cairo_set_source_rgba(cr, 0, 1, 1, 0.1)
-    cairo_arc(cr, config.xc, config.yc, config.radius, 0, 2 * math.pi)
-    cairo_fill(cr)
-
-    -- Draw the border of the globe
-    cairo_set_source_rgba(cr, 0, 0.5, 1, 1) -- Border color (blue)
+    -- Draw the globe
+    cairo_set_source_rgba(cr, 0, 0.5, 1, 0.9)
     cairo_arc(cr, config.xc, config.yc, config.radius, 0, 2 * math.pi)
     cairo_fill(cr)
 
@@ -165,16 +160,20 @@ local function draw_cities(cr)
     -- City data including name, coordinates, color, and pin length
     local cities = {
         { name = "Amsterdam", lat = 52.37, lon = 4.89, color = hex_to_rgb("#00D1FF"), pin_length = 50, pin_angle = -90 },
-        { name = "New York", lat = 40.71, lon = -74.01, color = hex_to_rgb("#FF4B00"), pin_length = 45 },
-        { name = "Tokyo", lat = 35.68, lon = 139.76, color = hex_to_rgb("#FF006E"), pin_length = 20, pin_angle = -90 },
-        { name = "London", lat = 51.51, lon = -0.13, color = hex_to_rgb("#FFD300"), pin_length = 32 },
-        { name = "Moscow", lat = 55.75, lon = 37.62, color = hex_to_rgb("#FF00FF"), pin_length = 15 },
+        { name = "Paris", lat = 48.85, lon = 2.35, color = hex_to_rgb("#00FFEF"), pin_length = 35 },
+        { name = "London", lat = 51.51, lon = -0.13, color = hex_to_rgb("#FFD300"), pin_length = 15 },                
+        { name = "New York", lat = 40.71, lon = -74.01, color = hex_to_rgb("#FF4B00"), pin_length = 50 },
+        { name = "Washington", lat = 38.90, lon = -77.04, color = hex_to_rgb("#00FF94"), pin_length = 35 },
+        { name = "Las Vegas", lat = 36.17, lon = -115.14, color = hex_to_rgb("#FF1493"), pin_length = 15 },
         { name = "Beijing", lat = 39.90, lon = 116.40, color = hex_to_rgb("#7CFC00"), pin_length = 30 },
-        { name = "Washington D.C.", lat = 38.90, lon = -77.04, color = hex_to_rgb("#00FF94"), pin_length = 15 },
-        { name = "Brasilia", lat = -15.79, lon = -47.88, color = hex_to_rgb("#FFA500") },
-        { name = "Canberra", lat = -35.28, lon = 149.13, color = hex_to_rgb("#00BFFF") },
-        { name = "Las Vegas", lat = 36.17, lon = -115.14, color = hex_to_rgb("#FF1493"), pin_length = 20 },
-        { name = "Paris", lat = 48.85, lon = 2.35, color = hex_to_rgb("#00FFEF"), pin_length = 20 }
+        { name = "Tokyo", lat = 35.68, lon = 139.76, color = hex_to_rgb("#FF006E"), pin_length = 20, pin_angle = -90 },               
+        { name = "Brasilia", lat = -15.79, lon = -47.88, color = hex_to_rgb("#ff5782"),pin_length = 30 },        
+        { name = "Buenos Aires", lat = -34.61, lon = -58.38, color = hex_to_rgb("#FF8C00") },
+        { name = "Cape Town", lat = -33.92, lon = 18.42, color = hex_to_rgb("#8A2BE2") },
+        { name = "Suva", lat = -18.14, lon = 178.44, color = hex_to_rgb("#a47de8"),pin_length = 50 },        
+        { name = "Wellington", lat = -41.29, lon = 174.78, color = hex_to_rgb("#4d94ff"),pin_length = 50 },
+        { name = "Canberra", lat = -35.28, lon = 149.13, color = hex_to_rgb("#00BFFF"),pin_length = 15 },
+        { name = "Jakarta", lat = -6.21, lon = 106.85, color = hex_to_rgb("#A52A2A") },
     }
 
     -- Calculate rotation based on current time
@@ -245,15 +244,29 @@ local function draw_cities(cr)
                 end
             end
 
-            -- Calculate positions for text and flag
-            local total_height = math.max(extents.height, flag_height)
-            local label_x = pin_x + 3 + (flag_width > 0 and flag_width + 4 or 0)
-            local label_y = pin_y - (total_height / 2) + extents.height
+           -- Calculate positions for text and flag with label_offset
+        local total_height = math.max(extents.height, flag_height)
+        local label_offset = config.label_offset
 
-            local box_x = pin_x + 2
-            local box_y = pin_y - (total_height / 2) - padding
-            local box_w = (flag_width > 0 and flag_width + 4 or 0) + extents.width + 2 * padding
-            local box_h = total_height + 2 * padding
+        local total_width = (flag_width > 0 and flag_width + 4 or 0) + extents.width + 2 * padding
+        local total_height = math.max(extents.height, flag_height)
+
+        local box_x = pin_x - (total_width / 2)
+        local box_y = pin_y - label_offset - (total_height / 2) - padding
+        local box_w = total_width
+        local box_h = total_height + 2 * padding
+
+        -- Positie van vlag
+        local flag_x = box_x + padding
+        local flag_y = box_y + (box_h - flag_height) / 2
+
+        -- Positie van tekst
+        local label_x = flag_x + (flag_width > 0 and flag_width + 4 or 0)
+        local label_y = box_y + (box_h + extents.height) / 2 - padding
+
+        local box_w = (flag_width > 0 and flag_width + 4 or 0) + extents.width + 2 * padding
+        local box_h = total_height + 2 * padding
+
 
             -- Draw the label background with border
             rounded_rectangle(cr, box_x, box_y, box_w, box_h, 4)

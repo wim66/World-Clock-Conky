@@ -1,7 +1,7 @@
 -- background.lua
 -- World Clocks drawn with Cairo and flags
 -- by @wim66
--- v 0.5 May 14, 2025
+-- -- v 0.6 May 15, 2025
 
 -- === Required Cairo Modules ===
 require 'cairo'
@@ -21,15 +21,16 @@ local unpack = table.unpack or unpack
 
 -- === All drawable elements ===
 local boxes_settings = {
+
     {
         type = "image",
         x = 0, y = 6, w = 455, h = 298,
         centre_x = true,
         rotation = 0,
         draw_me = true,
-        image_path = "images/earth.png"
+        image_path = "images/earth2.png"
+        
     },
-    -- Background
     {
         type = "background",
         x = 0, y = 0, w = 468, h = 308,
@@ -38,6 +39,14 @@ local boxes_settings = {
         rotation = 0,
         draw_me = true,
         colour = { { 1, 0x1d1d2e, 0.5 } }
+    },
+    {
+        type = "image",
+        x = 0, y = 6, w = 455, h = 298,
+        centre_x = true,
+        rotation = 0,
+        draw_me = true,
+        image_path = "images/flair.png"
     },
     {
         type = "border",

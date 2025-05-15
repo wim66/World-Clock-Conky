@@ -1,7 +1,7 @@
 -- loadall.lua
 -- World Clocks drawn with Cairo and flags
 -- by @wim66
--- May 14, 2025
+-- v 0.6 May 15, 2025
 
 -- Set the path to the scripts folder
 package.path = "./scripts/?.lua"
