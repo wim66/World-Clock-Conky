@@ -1,7 +1,7 @@
--- background.lua
+-- widget.lua
 -- World Clocks drawn with Cairo and flags
 -- by @wim66
--- -- v 0.6 May 15, 2025
+-- v 0.7 May 16, 2025
 
 -- === Required Cairo Modules ===
 require 'cairo'
@@ -16,56 +16,24 @@ if not status then
     })
 end
 
+
+package.path = "./scripts/?.lua"
+
+
+-- Load globe.lua (as module)
+local ok, err = pcall(require, "globe")
+if not ok then print("Error loading globe.lua: " .. err) end
+
+-- Load text.lua (as module)
+local ok, err = pcall(require, "text")
+if not ok then print("Error loading text.lua: " .. err) end
+
 -- === Utility ===
 local unpack = table.unpack or unpack
 
 -- === All drawable elements ===
-local boxes_settings = {
-
-    {
-        type = "image",
-        x = 0, y = 6, w = 455, h = 298,
-        centre_x = true,
-        rotation = 0,
-        draw_me = true,
-        image_path = "images/earth2.png"
-        
-    },
-    {
-        type = "background",
-        x = 0, y = 0, w = 468, h = 308,
-        centre_x = true,
-        corners = { 20, 20, 20, 20 },
-        rotation = 0,
-        draw_me = true,
-        colour = { { 1, 0x1d1d2e, 0.5 } }
-    },
-    {
-        type = "image",
-        x = 0, y = 6, w = 455, h = 298,
-        centre_x = true,
-        rotation = 0,
-        draw_me = true,
-        image_path = "images/flair.png"
-    },
-    {
-        type = "border",
-        x = 0, y = 0, w = 470, h = 310,
-        centre_x = true,
-        corners = { 20, 20, 20, 20 },
-        rotation = 0,
-        draw_me = true,
-        border = 8,
-        colour = {
-            { 0.00, 0x0D47A1, 1 }, -- Navy blue
-            { 0.25, 0x42A5F5, 1 }, -- Bright blue
-            { 0.50, 0xBBDEFB, 1 }, -- Light blue highlight
-            { 0.75, 0x42A5F5, 1 },
-            { 1.00, 0x0D47A1, 1 }
-        },
-        linear_gradient = { 0, 0, 470, 0 }
-    }
-}
+local layout = require("layout")
+local boxes_settings = layout.boxes_settings
 
 -- === Helper: Convert hex to RGBA ===
 local function hex_to_rgba(hex, alpha)
@@ -144,6 +112,12 @@ local function draw_image(cr, image_path, x, y, w, h, rotation, centre_x, canvas
     cairo_paint(cr)
     cairo_restore(cr)
     cairo_surface_destroy(image_surface)
+end
+
+function conky_main()
+    conky_draw_background()
+    conky_draw_globe()
+    conky_draw_text()
 end
 
 -- === Main drawing function ===

@@ -1,7 +1,7 @@
 -- globe.lua
 -- World Clocks drawn with Cairo and flags
 -- by @wim66
--- v 0.6 May 15, 2025
+-- v 0.7 May 16, 2025
 
 -- Load Cairo libraries for drawing functionality
 local cairo = require('cairo')
