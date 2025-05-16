@@ -13,19 +13,24 @@ local function parse_color_gradient(str, default)
     end
     return #gradient == 3 and gradient or default
 end
-
--- === Border Colour ===
 local colours = require "border_colour_schemes"
 
-local my_box_colour = colours.ocean_deep
-
 -- == Colours to choose from == --
-
+-- colours.wim66_green          💚
 -- colours.crimson_flame        🔴
 -- colours.ocean_deep           🔵
 -- colours.emerald_glow         🟢
 -- colours.mystic_twilight      🌌
 -- colours.solar_ember          🟠
+-- colours.aurora_borealis      ✨
+-- colours.sunset_blaze         🌟
+-- colours.forest_frenzy        🌿
+-- colours.frozen_tundra        ❄️
+-- colours.inferno              🔥
+-- colours.rainbow              🌈
+
+-- === Border Colour ===
+local my_box_colour = colours.ocean_deep
 
 -- === Layout ===
 M.boxes_settings = {
@@ -44,8 +49,8 @@ M.boxes_settings = {
         centre_x = true,
         corners = { 20, 20, 20, 20 },
         rotation = 0,
-        draw_me = true,
-        colour = { { 1, 0x1d1d2e, 0.5 } }
+        draw_me = false,
+        colour = { { 1, 0x1d1d2e, 0.4 } }
     },
     
     {

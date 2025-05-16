@@ -4,7 +4,7 @@
 -- v 0.7 May 16, 2025
 
 require 'cairo'
-require 'images'
+
 
 -- Define a table containing information about different world clocks.
 -- Each clock includes:
@@ -34,9 +34,7 @@ local world_clocks = {
 
 -- Define settings for rendering text, headers, and labels
 local settings = {
-
     scroll_speed = 4,                      -- Scroll speed in seconds
-
     font = "Ubuntu Mono",                  -- Font to use for text
     size = 14,                             -- Font size for the clock text
     header_size = 18,                      -- Font size for the header text
@@ -105,9 +103,56 @@ local function draw_rounded_rect(cr, x, y, w, h, r)
     cairo_close_path(cr)
 end
 
--- Function: conky_draw_text
--- Main function to draw the world clock text and flags
-function conky_draw_text()
+    -- Function to load and draw an image with a configurable height
+local function draw_image(cr, path, x, y, height)
+    -- Load the PNG image
+    local image_surface = cairo_image_surface_create_from_png(path)
+    
+    -- Get the original width and height of the image
+    local width = cairo_image_surface_get_width(image_surface)
+    local original_height = cairo_image_surface_get_height(image_surface)
+    
+    -- Calculate the scaling factor based on the desired height
+    local scale = height / original_height
+    local new_width = width * scale -- Calculate the new width after scaling
+    
+    -- Ensure the new width does not exceed the maximum allowed width
+    local max_width = 64 -- Maximum width for the scaled image (adjust as needed)
+    if new_width > max_width then
+        -- Recalculate the scale based on the maximum width
+        scale = max_width / width
+        new_width = max_width
+        height = original_height * scale -- Adjust the height proportionally
+    end
+    
+    -- Apply the scaling transformation
+    cairo_save(cr) -- Save the current state of the Cairo context
+    cairo_translate(cr, x, y) -- Translate the context to the specified (x, y) position
+    cairo_scale(cr, scale, scale) -- Scale the context by the calculated factor
+    
+    -- Draw the image on the scaled context
+    cairo_set_source_surface(cr, image_surface, 0, 0) -- Set the image as the source
+    cairo_paint(cr) -- Paint the image onto the context
+    
+    -- Restore the original transformation matrix
+    cairo_restore(cr)
+    
+    -- Clean up the image surface to free memory
+    cairo_surface_destroy(image_surface)
+end
+
+local start_time = os.time()
+
+local function get_scroll_offset()
+    local current_time = os.time() + (os.clock() % 1)
+    local elapsed_time = current_time - start_time
+    local offset = (elapsed_time / settings.scroll_speed) % (#world_clocks - 1)
+    return offset
+end
+
+    -- Function: conky_draw_text
+    -- Main function to draw the world clock text and flags
+    function conky_draw_text()
     if conky_window == nil then return end -- Exit if Conky window is not available
 
     -- Create a Cairo surface and context for drawing
@@ -159,12 +204,6 @@ function conky_draw_text()
     -- Draw each clock entry
     cairo_set_font_size(cr, settings.size)
 
-    -- Scroll settings
-    local visible_lines = 9  -- Number of cities displayed alongside the priority clock
-    local total_lines = #world_clocks - 1  -- Subtract 1 as Amsterdam is fixed
-    local sec = tonumber(os.date("%S"))  -- Current seconds
-    local offset = (total_lines - (math.floor(sec / settings.scroll_speed) % total_lines)) % total_lines
-
     -- Draw priority label (always at the top)
     local priority_city = world_clocks[1]
     local time = get_time(priority_city.zone)
@@ -199,11 +238,13 @@ function conky_draw_text()
     cairo_show_text(cr, label_text)
 
     -- Draw the remaining cities with scrolling, starting from index 2
-    for i = 1, visible_lines do
-        local index = (offset + i - 1) % total_lines + 2  -- +2 to start from the second item
+        local visible_lines = 9  -- Number of cities displayed alongside the priority clock
+        local offset = get_scroll_offset()
+        for i = 1, visible_lines do
+        local index = math.floor(#world_clocks - 1 - (offset + i - 1)) % (#world_clocks - 1) + 2  -- +2 to start from the second item
         local city = world_clocks[index]
         local time = get_time(city.zone)
-        local y = settings.y + (i + 1) * settings.line_height  -- +1 to start below Amsterdam
+        local y = settings.y + (visible_lines - i + 1) * settings.line_height  -- +1 to start below Amsterdam
         local label_text = string.format("%-14s %s", city.label .. ":", time)
 
         local extents = cairo_text_extents_t:create()

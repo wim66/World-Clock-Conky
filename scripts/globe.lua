@@ -10,11 +10,10 @@ if not status then
     -- Fallback for environments without cairo_xlib
     cairo_xlib = setmetatable({}, { __index = function(_, key) return _G[key] end })
 end
-local flags = require("images")
 
 -- Configuration settings for the globe and its elements
 local config = {
-    rotation_speed = 35,              -- Speed for a full globe rotation
+    rotation_speed = 30,              -- Speed for a full globe rotation, lower is faster
     pin_length = 20,                  -- Default length of the pin line from the globe to the label
     pin_radius = 5,                   -- Radius of the city pinhead (circle)
     font_name = "Ubuntu Mono",        -- Font used for city labels
@@ -23,7 +22,9 @@ local config = {
     label_offset = 14,                -- Distance in pixels between the pin-head and label
     xc = 340,                         -- X-coordinate for the center of the globe
     yc = 160,                         -- Y-coordinate for the center of the globe
-    radius = 90,                      -- Radius of the globe
+    radius = 90,
+    globe_alpha = 0.75,
+    globe_shadow = 0.2,                     -- Radius of the globe
     tilt = 23.5 * math.pi / 180       -- Earth's axial tilt in radians
 }
 
@@ -83,19 +84,26 @@ local function rounded_rectangle(cr, x, y, w, h, r)
     cairo_close_path(cr)
 end
 
+-- Function to calculate rotation based on current time
+local start_time = os.time()
+local function get_rotation()
+    local now = os.clock()
+    local rotation = (now - start_time) * 2 * math.pi / config.rotation_speed
+    return rotation
+end
+
 -- Function to draw the globe
 local function draw_globe(cr)
     -- Draw a shadow behind the globe
-    cairo_set_source_rgba(cr, 0, 0, 0, 0.2) -- Shadow color with transparency
+    cairo_set_source_rgba(cr, 0, 0, 0, config.globe_shadow) -- Shadow color with transparency
     cairo_arc(cr, config.xc + 3, config.yc + 3, config.radius, 0, 2 * math.pi)
     cairo_fill(cr)
 
     -- Determine the current rotation angle of the globe
-    local now = os.clock() -- Get the current time in seconds
-    local rotation = (now % config.rotation_speed) / config.rotation_speed * 2 * math.pi
+    local rotation = get_rotation()
 
     -- Draw the globe
-    cairo_set_source_rgba(cr, 0, 0.5, 1, 0.9)
+    cairo_set_source_rgba(cr, 0, 0.5, 1, config.globe_alpha)
     cairo_arc(cr, config.xc, config.yc, config.radius, 0, 2 * math.pi)
     cairo_fill(cr)
 
@@ -177,8 +185,7 @@ local function draw_cities(cr)
     }
 
     -- Calculate rotation based on current time
-    local now = os.clock()
-    local rotation = (now % config.rotation_speed) / config.rotation_speed * 2 * math.pi
+    local rotation = get_rotation()
 
     -- Iterate through each city to plot its pin and label
     for _, city in ipairs(cities) do
@@ -244,28 +251,28 @@ local function draw_cities(cr)
                 end
             end
 
-           -- Calculate positions for text and flag with label_offset
-        local total_height = math.max(extents.height, flag_height)
-        local label_offset = config.label_offset
+            -- Calculate positions for text and flag with label_offset
+            local total_height = math.max(extents.height, flag_height)
+            local label_offset = config.label_offset
 
-        local total_width = (flag_width > 0 and flag_width + 4 or 0) + extents.width + 2 * padding
-        local total_height = math.max(extents.height, flag_height)
+            local total_width = (flag_width > 0 and flag_width + 4 or 0) + extents.width + 2 * padding
+            local total_height = math.max(extents.height, flag_height)
 
-        local box_x = pin_x - (total_width / 2)
-        local box_y = pin_y - label_offset - (total_height / 2) - padding
-        local box_w = total_width
-        local box_h = total_height + 2 * padding
+            local box_x = pin_x - (total_width / 2)
+            local box_y = pin_y - label_offset - (total_height / 2) - padding
+            local box_w = total_width
+            local box_h = math.max(extents.height, flag_height) + 2 * padding
 
-        -- Positie van vlag
-        local flag_x = box_x + padding
-        local flag_y = box_y + (box_h - flag_height) / 2
+            -- Positie van vlag
+            local flag_x = box_x + padding
+            local flag_y = box_y + (box_h - flag_height) / 2
 
-        -- Positie van tekst
-        local label_x = flag_x + (flag_width > 0 and flag_width + 4 or 0)
-        local label_y = box_y + (box_h + extents.height) / 2 - padding
+            -- Positie van tekst
+            local label_x = flag_x + (flag_width > 0 and flag_width + 4 or 0)
+            local label_y = box_y + box_h / 2 + extents.height / 2
 
-        local box_w = (flag_width > 0 and flag_width + 4 or 0) + extents.width + 2 * padding
-        local box_h = total_height + 2 * padding
+            local box_w = (flag_width > 0 and flag_width + 4 or 0) + extents.width + 2 * padding
+            local box_h = math.max(extents.height, flag_height) + 2 * padding
 
 
             -- Draw the label background with border
