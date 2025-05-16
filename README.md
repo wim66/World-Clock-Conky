@@ -1,6 +1,6 @@
 # World Clock Conky
 
-**World Clock Conky** is a visually appealing and highly customizable Conky widget that displays world clocks using Cairo graphics. This widget includes features such as drawing time zones, city flags, and a rotating globe background. The widget is designed to provide a functional and aesthetic addition to your desktop environment.
+**World Clock Conky** is a visually appealing and highly customizable Conky widget that displays world clocks using Cairo graphics. This widget includes features such as drawing time zones, city flags[...]
 
 ## Features
 
@@ -50,9 +50,18 @@ cd World-Clock-Conky
 
 You can customize the widget by editing the following files:
 
-- **`scripts/globe.lua`**: Modify settings such as globe rotation speed, font sizes, colors, and city markers.
-- **`scripts/text.lua`**: Adjust clock display settings, including time zones, colors, and header styles.
-- **`conky.conf`**: Control the overall layout and behavior of the Conky window.
+- **`scripts/text.lua`**  
+  - Add, remove, or change cities and their time zones in the `world_clocks` table.
+  - Adjust colors, transparency, and assign a flag image per city.
+  - Change the scroll speed (how fast the cities rotate in the display).
+  - Modify layout and style for headers and labels, including fonts and gradients.
+
+- **`scripts/layout.lua`**  
+  - Adjust the background, borders, and overall layout of the widget.
+  - Choose a border color scheme by setting `my_box_colour` to one of the options defined in `scripts/border_colour_schemes.lua`.
+
+- **`scripts/border_colour_schemes.lua`**  
+  - Edit or add your own border color gradients for even more visual customization.
 
 ## License
 
