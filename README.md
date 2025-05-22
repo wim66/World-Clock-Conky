@@ -1,6 +1,6 @@
 # World Clock Conky
 
-**World Clock Conky** is a visually appealing and highly customizable Conky widget that displays world clocks using Cairo graphics. This widget includes features such as drawing time zones, city flags[...]
+**World Clock Conky** is a visually appealing and highly customizable Conky widget that displays world clocks using Cairo graphics. This widget includes features such as drawing time zones and city flags
 
 ## Features
 
