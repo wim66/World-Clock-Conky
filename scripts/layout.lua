@@ -22,11 +22,6 @@ local colours = require "border_colour_schemes"
 -- colours.emerald_glow         🟢
 -- colours.mystic_twilight      🌌
 -- colours.solar_ember          🟠
--- colours.aurora_borealis      ✨
--- colours.sunset_blaze         🌟
--- colours.forest_frenzy        🌿
--- colours.frozen_tundra        ❄️
--- colours.inferno              🔥
 -- colours.rainbow              🌈
 
 -- === Border Colour ===
